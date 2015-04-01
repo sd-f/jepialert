@@ -46,7 +46,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>JePiAlert</mainClass>
+                            <mainClass>at.tugraz.JePiAlert</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

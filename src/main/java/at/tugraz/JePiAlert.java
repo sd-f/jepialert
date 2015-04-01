@@ -42,7 +42,7 @@ public class JePiAlert {
     List<String> jobsToCheck = new ArrayList<>();
 
     // CHANGEME add your jobs here (Names)
-    jobsToCheck.add("Jobname");
+    jobsToCheck.add("Add Job-Names here");
 
     // close GPIO board on kill signal
     Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -61,7 +61,7 @@ public class JePiAlert {
         try {
 
           // CHANGEME to your host of your jenkins installation
-          jenkins = new JenkinsServer(new URI("http://hostofyourjenkins:8080"));
+          jenkins = new JenkinsServer(new URI("http://jenkinshostname:8080"));
         } catch (URISyntaxException ex) {
           Logger.getLogger(JePiAlert.class.getName()).log(Level.SEVERE, "Could not connect to Jenkins (check URI-Syntax)", ex);
           shutDown(gpioController, pin, pin2);
