@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>at.tugraz</groupId>
+    <groupId>foundation.softwaredesign</groupId>
     <artifactId>jepialert</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -31,9 +31,20 @@
             <artifactId>jenkins-client</artifactId>
             <version>0.3.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>18.0</version>
+        </dependency>
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <targetPath>${project.build.directory}/conf</targetPath>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -46,9 +57,10 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>at.tugraz.JePiAlert</mainClass>
+                            <mainClass>foundation.softwaredesign.jepialert.JePiAlert</mainClass>
                         </manifest>
                     </archive>
+                    <attach>false</attach> <!-- full version is not being deployed to repo -->
                 </configuration>
                 <executions>
                     <execution>

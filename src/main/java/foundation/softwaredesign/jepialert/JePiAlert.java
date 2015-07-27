@@ -1,17 +1,24 @@
-package at.tugraz;
+package foundation.softwaredesign.jepialert;
 
 /**
  * Demo - do whatever you want with this source ;)
  */
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.offbytwo.jenkins.JenkinsServer;
 import com.offbytwo.jenkins.model.BuildResult;
 import com.offbytwo.jenkins.model.Job;
@@ -41,9 +48,6 @@ public class JePiAlert {
     Logger.getLogger(JePiAlert.class.getName()).log(Level.INFO, "Registering Jobs to check.");
     List<String> jobsToCheck = new ArrayList<>();
 
-    // CHANGEME add your jobs here (Names)
-    jobsToCheck.add("Add Job-Names here");
-
     // close GPIO board on kill signal
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
@@ -54,14 +58,74 @@ public class JePiAlert {
 
     Logger.getLogger(JePiAlert.class.getName()).log(Level.INFO, "GPIO initialized.");
 
+    Properties prop = new Properties();
+    InputStream input = null;
+
+    String jenkinsHost = "http://localhost:8080";
+    String jenkinsUser = "";
+    String jenkinsPassword = "";
+    String jenkinsJobs = "";
+
     while (true) {
       try {
+        jobsToCheck.clear();
+        Logger.getLogger(JePiAlert.class.getName()).log(Level.INFO, "Reading properties.");
+
+        try {
+
+          input = new FileInputStream(JePiAlert.getPath() + "/conf/jepialert.properties");
+
+          // load a properties file
+          prop.load(input);
+
+          jenkinsHost = prop.getProperty("jenkins.host");
+
+          if ((null != jenkinsHost) && !jenkinsHost.isEmpty()) {
+            Logger.getLogger(JePiAlert.class.getName()).log(Level.INFO, "Jenkins host set: {0}", jenkinsHost);
+          } else {
+            Logger.getLogger(JePiAlert.class.getName()).log(Level.WARNING, "No host defined in properties, please set property");
+          }
+
+          jenkinsUser = prop.getProperty("jenkins.user");
+          jenkinsPassword = prop.getProperty("jenkins.password");
+
+          if ((null != jenkinsUser) && !jenkinsUser.isEmpty()) {
+            jenkinsHost = jenkinsUser + ":" + jenkinsPassword + "@" + jenkinsHost;
+          }
+
+          jenkinsJobs = prop.getProperty("jenkins.jobs");
+
+          if ((null != jenkinsJobs) && !jenkinsJobs.isEmpty()) {
+            Logger.getLogger(JePiAlert.class.getName()).log(Level.INFO, "Jobs set: {0}", jenkinsJobs);
+            jobsToCheck.addAll(
+                Lists.newArrayList(
+                    Splitter.on(',')
+                    .trimResults()
+                    .omitEmptyStrings()
+                    .split(jenkinsJobs)));
+          } else {
+            Logger.getLogger(JePiAlert.class.getName()).log(Level.WARNING, "No jobs defined in properties, please add some");
+          }
+
+        } catch (IOException ex) {
+          Logger.getLogger(JePiAlert.class.getName()).log(Level.SEVERE, "Could read properties file 'jepialert.properties', please check if file exists", ex);
+          throw new RuntimeException("Could read properties file 'jepialert.properties', please check if file exists");
+        } finally {
+          if (input != null) {
+            try {
+              input.close();
+            } catch (IOException e) {
+              Logger.getLogger(JePiAlert.class.getName()).log(Level.SEVERE, "Could not close properties file", e);
+              throw new RuntimeException("Could not close properties file");
+            }
+          }
+        }
 
         JenkinsServer jenkins = null;
         try {
 
           // CHANGEME to your host of your jenkins installation
-          jenkins = new JenkinsServer(new URI("http://jenkinshostname:8080"));
+          jenkins = new JenkinsServer(new URI(jenkinsHost));
         } catch (URISyntaxException ex) {
           Logger.getLogger(JePiAlert.class.getName()).log(Level.SEVERE, "Could not connect to Jenkins (check URI-Syntax)", ex);
           shutDown(gpioController, pin, pin2);
@@ -213,6 +277,22 @@ public class JePiAlert {
     gpioController.shutdown();
     System.out.println("GPIO shut down.");
     System.out.println("closed.");
+  }
+
+  private static String getPath() {
+    String path = JePiAlert.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+    String decodedPath = path;
+
+    try {
+      decodedPath = URLDecoder.decode(path, "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      Logger.getLogger(JePiAlert.class
+          .getName()).log(Level.SEVERE, "Could not find properties file path " + decodedPath, e);
+      return null;
+    }
+
+    String absolutePath = decodedPath.substring(0, decodedPath.lastIndexOf("/"));
+    return absolutePath;
   }
 
 }
