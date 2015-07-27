@@ -75,4 +75,19 @@
         </plugins>
     </build>
 
+    <distributionManagement>
+        <repository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>sd.f-releases</id>
+            <name>softwaredesign.foundation Releases</name>
+            <url>${comuni.nexus.repo.url}/sd.f-releases</url>
+        </repository>
+        <snapshotRepository>
+            <uniqueVersion>true</uniqueVersion>
+            <id>sd.f-snapshots</id>
+            <name>softwaredesign.foundation Snapshots</name>
+            <url>${comuni.nexus.repo.url}/sd.f-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
 </project>
